@@ -30,7 +30,7 @@ HK Bus Express 是一個高效、響應式的 Progressive Web App (PWA)，支援
 
 存取 PWA 網站：
 
-約 1~2 分鐘後，您的網站即可透過 https://kkoo-p.github.io/Public-Bus/ 存取。
+約 1~2 分鐘後，您的網站即可透過 https://kkoo-p.github.io/HK-Public-Bus/ 存取。
 
 由於 GitHub Pages 提供免費的 HTTPS 連線，GPS 定位與 PWA 安裝功能均可順暢運行。
 

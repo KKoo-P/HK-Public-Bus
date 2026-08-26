@@ -361,6 +361,7 @@
             mapMarkers: [],
             mapPolyline: null,
             showingFavoritesOnly: false,
+            isMockMode: false,    // Track whether application is in mock mode
             
             // User Geolocation State
             userLocation: null,      // { lat, lng, accuracy }
@@ -411,6 +412,7 @@
                 arriving: '即將到達',
                 mins: '分鐘',
                 noService: '無班次',
+                serviceEnded: '服務已結束 / 末班車已過',
                 dataSource: '資料來源：香港政府資料一線通 (DATA.GOV.HK)、九龍巴士 (KMB) 及 城巴 (Citybus) 開放 API 介面',
                 copyright: '© 2026 HK Bus Express - 僅供交通數據參考'
             },
@@ -453,6 +455,7 @@
                 arriving: 'Arriving',
                 mins: 'mins',
                 noService: 'No Service',
+                serviceEnded: 'Service Ended / Last Bus Departed',
                 dataSource: 'Data Sources: DATA.GOV.HK, KMB & Citybus Open APIs',
                 copyright: '© 2026 HK Bus Express - For Reference Only'
             }
@@ -542,13 +545,12 @@
             if (iconSvg) iconSvg.classList.add('animate-spin');
 
             const options = {
-                enableHighAccuracy: true, // 核心設定：強制要求裝置提供最精準的 GPS 座標 (Precise Location)
-                timeout: 15000,           // 延長超時時間 (15秒)，給予 GPS 硬體足夠時間進行精準定位
-                maximumAge: 0             // 強制不使用歷史快取，取得當下的最新位置
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
             };
 
             navigator.geolocation.getCurrentPosition(
-                // Success Callback
                 (position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
@@ -570,7 +572,6 @@
                         renderStopsTimeline(STATE.stopsCache);
                     }
                 },
-                // Error Callback
                 (error) => {
                     if (gpsText) gpsText.innerText = I18N[STATE.lang].gpsBtn;
                     if (mapGpsText) mapGpsText.innerText = I18N[STATE.lang].gpsMapBtn;
@@ -578,7 +579,6 @@
 
                     console.warn("Geolocation error:", error);
                     
-                    // 根據不同的錯誤代碼給予具體提示
                     let errorMsg = I18N[STATE.lang].locationFailed;
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
@@ -605,7 +605,6 @@
         function displayUserLocationOnMap(lat, lng, accuracy) {
             if (!STATE.leafletMap) return;
 
-            // Clear previous user location markers
             if (STATE.userMarker) {
                 STATE.leafletMap.removeLayer(STATE.userMarker);
             }
@@ -613,14 +612,12 @@
                 STATE.leafletMap.removeLayer(STATE.userAccuracyCircle);
             }
 
-            // Create Pulsing GPS Marker Icon
             const userIcon = L.divIcon({
                 className: 'user-gps-marker',
                 iconSize: [16, 16],
                 iconAnchor: [8, 8]
             });
 
-            // Add Accuracy Radius Circle
             STATE.userAccuracyCircle = L.circle([lat, lng], {
                 radius: accuracy || 50,
                 color: '#3B82F6',
@@ -629,7 +626,6 @@
                 weight: 1
             }).addTo(STATE.leafletMap);
 
-            // Add Pulsing Location Marker
             STATE.userMarker = L.marker([lat, lng], { icon: userIcon })
                 .bindPopup(`
                     <div class="text-xs p-1 font-bold text-blue-600 dark:text-blue-400">
@@ -638,7 +634,6 @@
                 `)
                 .addTo(STATE.leafletMap);
 
-            // Center and Zoom Map to User
             STATE.leafletMap.setView([lat, lng], 15, { animate: true });
         }
 
@@ -646,7 +641,7 @@
          * Calculate Haversine distance between two coordinates in meters
          */
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371000; // Earth radius in meters
+            const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = 
@@ -704,11 +699,9 @@
             const lang = STATE.lang;
             const t = I18N[lang];
 
-            // Update language toggle button text
             const langBtnText = document.getElementById('lang-btn-text');
             if (langBtnText) langBtnText.innerText = lang === 'tc' ? 'EN' : '繁中';
 
-            // Static UI text updates
             document.getElementById('app-subtitle').innerText = t.appSubTitle;
             document.getElementById('fav-label').innerText = t.fav;
             document.getElementById('route-search').placeholder = t.searchPlaceholder;
@@ -735,7 +728,6 @@
             document.getElementById('footer-source').innerText = t.dataSource;
             document.getElementById('footer-copy').innerText = t.copyright;
 
-            // Re-render dynamic list and details if open
             renderRouteList();
 
             if (STATE.selectedRoute) {
@@ -894,7 +886,6 @@
                 console.warn("Live API fetch failed or rate-limited. Falling back to mock data.", err);
             }
 
-            // Deduplicate routes or fall back if empty
             if (fetchedRoutes.length > 0) {
                 const uniqueMap = new Map();
                 fetchedRoutes.forEach(item => {
@@ -904,15 +895,16 @@
                     }
                 });
                 STATE.allRoutes = Array.from(uniqueMap.values());
+                STATE.isMockMode = false;
                 badgeEl.innerText = I18N[STATE.lang].apiConnected;
                 badgeEl.className = 'px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium text-[11px]';
             } else {
                 STATE.allRoutes = MOCK_ROUTES;
+                STATE.isMockMode = true;
                 badgeEl.innerText = I18N[STATE.lang].mockData;
                 badgeEl.className = 'px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-medium text-[11px]';
             }
 
-            // Sort routes
             STATE.allRoutes.sort((a, b) => naturalCompare(a.route, b.route));
             renderRouteList();
         }
@@ -1022,7 +1014,6 @@
             } else {
                 clearBtn.classList.add('hidden');
             }
-            // Ensure if user is in details view, they go back to list to see search results
             if (STATE.selectedRoute) {
                 backToRouteList();
             }
@@ -1212,43 +1203,94 @@
             fetchLiveETAForStops(stopsData);
         }
 
+        /**
+         * Fetch live ETA times with proper detection for non-service / late night status
+         */
         async function fetchLiveETAForStops(stopsData) {
             const route = STATE.selectedRoute;
             if (!route) return;
 
             const isEn = STATE.lang === 'en';
-            const minsText = isEn ? 'mins' : '分鐘';
+            const dirCode = STATE.currentBound === 'outbound' ? 'O' : 'I';
 
             stopsData.forEach(async (stopItem) => {
                 const etaContainer = document.getElementById(`eta-box-${stopItem.stop_id}`);
                 if (!etaContainer) return;
 
                 let etas = [];
+                let apiSuccess = false;
+                let remarksFound = [];
+
                 try {
+                    let url = '';
                     if (route.company === 'KMB') {
-                        const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/eta/${stopItem.stop_id}/${route.route}/${route.service_type || '1'}`);
-                        const json = await res.json();
-                        if (json && json.data) {
-                            etas = json.data.filter(e => e.eta).slice(0, 3).map(e => parseETAMinutes(e.eta, e.rmk_tc));
-                        }
+                        url = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${stopItem.stop_id}/${route.route}/${route.service_type || '1'}`;
                     } else {
-                        const res = await fetch(`https://rt.data.gov.hk/v2/transport/citybus/eta/ctb/${stopItem.stop_id}/${route.route}`);
+                        url = `https://rt.data.gov.hk/v2/transport/citybus/eta/ctb/${stopItem.stop_id}/${route.route}`;
+                    }
+
+                    const res = await fetch(url);
+                    if (res.ok) {
                         const json = await res.json();
-                        if (json && json.data) {
-                            etas = json.data.filter(e => e.eta).slice(0, 3).map(e => parseETAMinutes(e.eta, e.rmk_tc));
+                        if (json && Array.isArray(json.data)) {
+                            apiSuccess = true;
+                            
+                            // Filter entries matching direction if specified
+                            const pool = json.data.filter(item => !item.dir || item.dir === dirCode);
+                            const targetPool = pool.length > 0 ? pool : json.data;
+
+                            // Find items with valid ISO timestamp in eta
+                            const validEtaItems = targetPool.filter(e => e.eta && typeof e.eta === 'string' && e.eta.trim() !== '');
+
+                            if (validEtaItems.length > 0) {
+                                etas = validEtaItems.slice(0, 3).map(e => parseETAMinutes(e.eta, isEn ? (e.rmk_en || e.rmk_tc) : (e.rmk_tc || e.rmk_en)));
+                            } else {
+                                // Extract remarks if present (e.g. "末班車已過", "暫停服務")
+                                targetPool.forEach(e => {
+                                    const r = isEn ? (e.rmk_en || e.rmk_tc) : (e.rmk_tc || e.rmk_en);
+                                    if (r && r.trim() !== '' && !remarksFound.includes(r.trim())) {
+                                        remarksFound.push(r.trim());
+                                    }
+                                });
+                            }
                         }
                     }
                 } catch (e) {
-                    // Ignore individual stop fetch failures
+                    console.warn(`ETA fetch failed for stop ${stopItem.stop_id}`, e);
                 }
 
-                if (etas.length === 0) {
-                    const baseMin = (stopItem.seq * 2) % 15 + 1;
-                    etas = [
-                        { minText: `${baseMin} ${minsText}`, timeText: getFutureTimeString(baseMin), isLive: true },
-                        { minText: `${baseMin + 12} ${minsText}`, timeText: getFutureTimeString(baseMin + 12), isLive: false },
-                        { minText: `${baseMin + 24} ${minsText}`, timeText: getFutureTimeString(baseMin + 24), isLive: false }
-                    ];
+                if (apiSuccess) {
+                    if (etas.length === 0) {
+                        // Real API responded but no active bus schedules available (Night time / Service ended)
+                        const statusMessage = remarksFound.length > 0 ? remarksFound.join(' / ') : I18N[STATE.lang].serviceEnded;
+                        etas = [{
+                            minText: statusMessage,
+                            timeText: '',
+                            rmk: '',
+                            isLive: false,
+                            isNoService: true
+                        }];
+                    }
+                } else {
+                    // Network API call failed completely
+                    if (STATE.isMockMode) {
+                        // Demo mode: synthesize mock ETA
+                        const baseMin = (stopItem.seq * 2) % 15 + 1;
+                        const minsText = isEn ? 'mins' : '分鐘';
+                        etas = [
+                            { minText: `${baseMin} ${minsText}`, timeText: getFutureTimeString(baseMin), isLive: true },
+                            { minText: `${baseMin + 12} ${minsText}`, timeText: getFutureTimeString(baseMin + 12), isLive: false },
+                            { minText: `${baseMin + 24} ${minsText}`, timeText: getFutureTimeString(baseMin + 24), isLive: false }
+                        ];
+                    } else {
+                        etas = [{
+                            minText: I18N[STATE.lang].noService,
+                            timeText: '',
+                            rmk: '',
+                            isLive: false,
+                            isNoService: true
+                        }];
+                    }
                 }
 
                 renderETATags(etaContainer, etas);
@@ -1257,9 +1299,25 @@
 
         function parseETAMinutes(etaISOStr, rmk) {
             const isEn = STATE.lang === 'en';
-            if (!etaISOStr) return { minText: I18N[STATE.lang].noService, timeText: '', isLive: false };
+            if (!etaISOStr) {
+                return { 
+                    minText: rmk || I18N[STATE.lang].serviceEnded, 
+                    timeText: '', 
+                    isLive: false,
+                    isNoService: true 
+                };
+            }
             
             const etaTime = new Date(etaISOStr);
+            if (isNaN(etaTime.getTime())) {
+                return { 
+                    minText: rmk || I18N[STATE.lang].noService, 
+                    timeText: '', 
+                    isLive: false,
+                    isNoService: true 
+                };
+            }
+
             const now = new Date();
             const diffMs = etaTime - now;
             const diffMin = Math.floor(diffMs / 60000);
@@ -1302,7 +1360,6 @@
                 const mainName = isEn ? (st.name_en || st.name_tc) : (st.name_tc || st.name_en);
                 const subName = isEn ? st.name_tc : st.name_en;
 
-                // Calculate Distance if user position is available
                 let distHtml = '';
                 if (STATE.userLocation && st.lat && st.long) {
                     const meters = calculateDistance(STATE.userLocation.lat, STATE.userLocation.lng, st.lat, st.long);
@@ -1354,19 +1411,44 @@
 
         function renderETATags(container, etas) {
             container.innerHTML = '';
+
+            if (!etas || etas.length === 0) {
+                const tag = document.createElement('div');
+                tag.className = "px-2.5 py-1 rounded-lg border text-xs font-semibold bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700";
+                tag.innerText = I18N[STATE.lang].noService;
+                container.appendChild(tag);
+                return;
+            }
+
             etas.forEach((e, i) => {
                 const tag = document.createElement('div');
                 const isFirst = i === 0;
 
+                if (e.isNoService || (!e.isLive && !e.timeText)) {
+                    tag.className = "px-2.5 py-1 rounded-lg border text-xs font-medium bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800 flex items-center space-x-1.5 shadow-2xs";
+                    const displayMsg = e.rmk || e.minText || I18N[STATE.lang].serviceEnded;
+                    tag.innerHTML = `
+                        <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="font-semibold">${displayMsg}</span>
+                    `;
+                    container.appendChild(tag);
+                    return;
+                }
+
                 let bgClass = isFirst 
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' 
                     : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
+
+                let rmkText = e.rmk ? `<span class="text-[10px] text-amber-600 dark:text-amber-400 ml-1">(${e.rmk})</span>` : '';
 
                 tag.className = `px-2.5 py-1 rounded-lg border text-xs font-semibold flex items-center space-x-1.5 shadow-2xs ${bgClass}`;
                 tag.innerHTML = `
                     ${isFirst ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot"></span>' : ''}
                     <span>${e.minText}</span>
                     <span class="text-[10px] opacity-70 font-normal">(${e.timeText})</span>
+                    ${rmkText}
                 `;
                 container.appendChild(tag);
             });
@@ -1418,7 +1500,6 @@
         function updateMapMarkers(stops) {
             if (!STATE.leafletMap) return;
 
-            // Clear old markers & polyline
             STATE.mapMarkers.forEach(m => STATE.leafletMap.removeLayer(m));
             STATE.mapMarkers = [];
             if (STATE.mapPolyline) {
@@ -1472,7 +1553,6 @@
                 }
             });
 
-            // Draw polyline connecting stops
             if (latLngs.length > 1) {
                 STATE.mapPolyline = L.polyline(latLngs, {
                     color: STATE.selectedRoute && STATE.selectedRoute.company === 'KMB' ? '#E1251B' : '#0050A0',

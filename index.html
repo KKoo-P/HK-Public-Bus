@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>香港即時巴士路線指南 HK Bus Express</title>
+    <title>香港即時巴士路線指南 HK Bus Express (KMB / CTB / NLB)</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,6 +23,11 @@
                             yellow: '#FFD100',
                             dark: '#003366',
                             light: '#E0F2FE',
+                        },
+                        nlb: {
+                            DEFAULT: '#00A389',
+                            dark: '#007A67',
+                            light: '#E6F7F4',
                         }
                     }
                 }
@@ -126,7 +131,7 @@
             
             <!-- Logo & Title -->
             <div class="flex items-center space-x-3 cursor-pointer" onclick="resetToHome()">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-amber-500 to-blue-600 flex items-center justify-center text-white shadow-md">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-amber-500 to-teal-600 flex items-center justify-center text-white shadow-md">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8m-8 4h8m-4 8l-4-4h8l-4 4--4 4v-4m-6-10a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z"/>
                         <circle cx="7.5" cy="16.5" r="1.5" fill="currentColor"/>
@@ -134,10 +139,10 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg leading-none bg-gradient-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
+                    <h1 class="font-bold text-lg leading-none bg-gradient-to-r from-red-600 via-blue-600 to-teal-600 bg-clip-text text-transparent">
                         HK Bus Express
                     </h1>
-                    <p id="app-subtitle" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">香港九巴 & 城巴即時到站</p>
+                    <p id="app-subtitle" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">香港九巴、城巴 & 嶼巴即時到站</p>
                 </div>
             </div>
 
@@ -186,7 +191,7 @@
                 <!-- Search Input with Location Detect Trigger -->
                 <div class="relative flex items-center space-x-2">
                     <div class="relative flex-1">
-                        <input type="text" id="route-search" placeholder="搜尋路線或目的地 (例如: 1A, 102, 968, 中環, 尖沙咀)..." 
+                        <input type="text" id="route-search" placeholder="搜尋路線或目的地 (例如: 1A, 102, 37M, 梅窩, 昂坪)..." 
                                class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm outline-none transition"
                                oninput="handleSearchInput(this.value)"
                                onkeypress="if(event.key === 'Enter') handleSearchInput(this.value)">
@@ -201,7 +206,7 @@
                     </div>
                 </div>
 
-                <!-- Company Filter Buttons + GPS Location Trigger -->
+                <!-- Company Filter Buttons (KMB, CTB, NLB, CROSS) + GPS Location Trigger -->
                 <div class="flex items-center justify-between gap-1.5 pt-1 overflow-x-auto pb-1">
                     <button onclick="setCompanyFilter('ALL')" id="filter-all" class="filter-btn active-filter px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition shrink-0">
                         全部 (ALL)
@@ -213,6 +218,10 @@
                     <button onclick="setCompanyFilter('CTB')" id="filter-ctb" class="filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center space-x-1 shrink-0">
                         <span class="w-2 h-2 rounded-full bg-blue-600"></span>
                         <span id="filter-ctb-text">城巴 CTB</span>
+                    </button>
+                    <button onclick="setCompanyFilter('NLB')" id="filter-nlb" class="filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center space-x-1 shrink-0">
+                        <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                        <span id="filter-nlb-text">嶼巴 NLB</span>
                     </button>
                     <button onclick="setCompanyFilter('CROSS')" id="filter-cross" class="filter-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center space-x-1 shrink-0">
                         <span class="w-2 h-2 rounded-full bg-amber-500"></span>
@@ -338,7 +347,7 @@
 
     <!-- Footer -->
     <footer class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-4 text-center text-xs text-gray-500 dark:text-gray-400">
-        <p id="footer-source">資料來源：香港政府資料一線通 (DATA.GOV.HK)、九龍巴士 (KMB) 及 城巴 (Citybus) 開放 API 介面</p>
+        <p id="footer-source">資料來源：香港政府資料一線通 (DATA.GOV.HK)、九龍巴士 (KMB)、城巴 (Citybus) 及 新大嶼山巴士 (NLB) 開放 API 介面</p>
         <p id="footer-copy" class="mt-1">© 2026 HK Bus Express - 僅供交通數據參考</p>
     </footer>
 
@@ -374,12 +383,13 @@
          */
         const I18N = {
             tc: {
-                appSubTitle: '香港九巴 & 城巴即時到站',
+                appSubTitle: '香港九巴、城巴 & 嶼巴即時到站',
                 fav: '收藏',
-                searchPlaceholder: '搜尋路線或目的地 (例如: 1A, 102, 968, 中環, 尖沙咀)...',
+                searchPlaceholder: '搜尋路線或目的地 (例如: 1A, 102, 37M, 梅窩, 昂坪)...',
                 filterAll: '全部 (ALL)',
                 filterKMB: '九巴 KMB',
                 filterCTB: '城巴 CTB',
+                filterNLB: '嶼巴 NLB',
                 filterCross: '過海線',
                 gpsBtn: '定位',
                 gpsMapBtn: '我的位置',
@@ -393,7 +403,7 @@
                 yourLocation: '您的目前位置',
                 distanceMeters: (m) => `距離約 ${m} 米`,
                 distanceKm: (km) => `距離約 ${km} 公里`,
-                loadingRoutes: '正在載入九巴及城巴數據...',
+                loadingRoutes: '正在載入九巴、城巴及新大嶼山巴士數據...',
                 apiConnected: '即時 API 服務中',
                 mockData: '示範備用數據模式',
                 showCount: (n) => `顯示 ${n} 條路線`,
@@ -413,16 +423,17 @@
                 mins: '分鐘',
                 noService: '無班次',
                 serviceEnded: '服務已結束 / 末班車已過',
-                dataSource: '資料來源：香港政府資料一線通 (DATA.GOV.HK)、九龍巴士 (KMB) 及 城巴 (Citybus) 開放 API 介面',
+                dataSource: '資料來源：香港政府資料一線通 (DATA.GOV.HK)、九龍巴士 (KMB)、城巴 (Citybus) 及 新大嶼山巴士 (NLB) 開放 API 介面',
                 copyright: '© 2026 HK Bus Express - 僅供交通數據參考'
             },
             en: {
-                appSubTitle: 'HK KMB & Citybus Live ETA',
+                appSubTitle: 'HK KMB, Citybus & NLB Live ETA',
                 fav: 'Favorites',
-                searchPlaceholder: 'Search route or destination (e.g. 1A, 102, Central, TST)...',
+                searchPlaceholder: 'Search route or destination (e.g. 1A, 102, 37M, Mui Wo, Ngong Ping)...',
                 filterAll: 'ALL',
                 filterKMB: 'KMB',
                 filterCTB: 'Citybus',
+                filterNLB: 'NLB',
                 filterCross: 'Cross Harbour',
                 gpsBtn: 'Locate',
                 gpsMapBtn: 'My Location',
@@ -436,7 +447,7 @@
                 yourLocation: 'Your Current Location',
                 distanceMeters: (m) => `~${m} m away`,
                 distanceKm: (km) => `~${km} km away`,
-                loadingRoutes: 'Loading KMB & CTB route data...',
+                loadingRoutes: 'Loading KMB, CTB & NLB route data...',
                 apiConnected: 'Live API Connected',
                 mockData: 'Demo Fallback Mode',
                 showCount: (n) => `Showing ${n} routes`,
@@ -456,23 +467,29 @@
                 mins: 'mins',
                 noService: 'No Service',
                 serviceEnded: 'Service Ended / Last Bus Departed',
-                dataSource: 'Data Sources: DATA.GOV.HK, KMB & Citybus Open APIs',
+                dataSource: 'Data Sources: DATA.GOV.HK, KMB, Citybus & NLB Open APIs',
                 copyright: '© 2026 HK Bus Express - For Reference Only'
             }
         };
 
         // Popular Fallback Routes for seamless operation offline or if API rate limits
         const MOCK_ROUTES = [
-            { route: "1A", company: "KMB", orig_tc: "中秀茂坪", dest_tc: "尖沙咀碼頭", orig_en: "Central Sau Mau Ping", dest_en: "Tsim Sha Tsui Ferry Pier", service_type: "1" },
-            { route: "102", company: "KMB", isCross: true, orig_tc: "美孚", dest_tc: "筲箕灣", orig_en: "Mei Foo", dest_en: "Shau Kei Wan", service_type: "1" },
-            { route: "968", company: "KMB", orig_tc: "元朗(西)", dest_tc: "銅鑼灣(天后)", orig_en: "Yuen Long (West)", dest_en: "Causeway Bay (Tin Hau)", service_type: "1" },
-            { route: "B1", company: "KMB", orig_tc: "天水圍天慈邨", dest_tc: "落馬洲站", orig_en: "Tin Tsz Estate", dest_en: "Lok Ma Chau Station", service_type: "1" },
-            { route: "1", company: "CTB", orig_tc: "摩星嶺", dest_tc: "跑馬地(上)", orig_en: "Felix Villas", dest_en: "Happy Valley (Upper)", service_type: "1" },
-            { route: "77", company: "CTB", orig_tc: "田灣", dest_tc: "筲箕灣", orig_en: "Tin Wan", dest_en: "Shau Kei Wan", service_type: "1" },
-            { route: "A21", company: "CTB", orig_tc: "紅磡站", dest_tc: "機場", orig_en: "Hung Hom Station", dest_en: "Airport", service_type: "1" },
-            { route: "E11", company: "CTB", orig_tc: "天后站", dest_tc: "機場博覽館", orig_en: "Tin Hau Station", dest_en: "AsiaWorld-Expo", service_type: "1" },
-            { route: "N121", company: "CTB", isCross: true, orig_tc: "中環(港澳碼頭)", dest_tc: "牛頭角", orig_en: "Central (Macau Ferry)", dest_en: "Ngau Tau Kok", service_type: "1" },
-            { route: "681", company: "KMB", isCross: true, orig_tc: "馬鞍山市中心", dest_tc: "中環(香港站)", orig_en: "Ma On Shan Town Centre", dest_en: "Central (Hong Kong Station)", service_type: "1" }
+            { routeId: "1A", route: "1A", company: "KMB", orig_tc: "中秀茂坪", dest_tc: "尖沙咀碼頭", orig_en: "Central Sau Mau Ping", dest_en: "Tsim Sha Tsui Ferry Pier", service_type: "1" },
+            { routeId: "102", route: "102", company: "KMB", isCross: true, orig_tc: "美孚", dest_tc: "筲箕灣", orig_en: "Mei Foo", dest_en: "Shau Kei Wan", service_type: "1" },
+            { routeId: "968", route: "968", company: "KMB", orig_tc: "元朗(西)", dest_tc: "銅鑼灣(天后)", orig_en: "Yuen Long (West)", dest_en: "Causeway Bay (Tin Hau)", service_type: "1" },
+            { routeId: "B1", route: "B1", company: "KMB", orig_tc: "天水圍天慈邨", dest_tc: "落馬洲站", orig_en: "Tin Tsz Estate", dest_en: "Lok Ma Chau Station", service_type: "1" },
+            { routeId: "1", route: "1", company: "CTB", orig_tc: "摩星嶺", dest_tc: "跑馬地(上)", orig_en: "Felix Villas", dest_en: "Happy Valley (Upper)", service_type: "1" },
+            { routeId: "77", route: "77", company: "CTB", orig_tc: "田灣", dest_tc: "筲箕灣", orig_en: "Tin Wan", dest_en: "Shau Kei Wan", service_type: "1" },
+            { routeId: "A21", route: "A21", company: "CTB", orig_tc: "紅磡站", dest_tc: "機場", orig_en: "Hung Hom Station", dest_en: "Airport", service_type: "1" },
+            { routeId: "E11", route: "E11", company: "CTB", orig_tc: "天后站", dest_tc: "機場博覽館", orig_en: "Tin Hau Station", dest_en: "AsiaWorld-Expo", service_type: "1" },
+            
+            // New Lantao Bus (NLB) Fallback Routes
+            { routeId: "37M", route: "37M", company: "NLB", orig_tc: "迎東邨", dest_tc: "東涌站", orig_en: "Ying Tung Estate", dest_en: "Tung Chung Station", service_type: "1" },
+            { routeId: "38", route: "38", company: "NLB", orig_tc: "逸東邨", dest_tc: "東涌站", orig_en: "Yat Tung Estate", dest_en: "Tung Chung Station", service_type: "1" },
+            { routeId: "3M", route: "3M", company: "NLB", orig_tc: "梅窩碼頭", dest_tc: "東涌站", orig_en: "Mui Wo Ferry Pier", dest_en: "Tung Chung Station", service_type: "1" },
+            { routeId: "11", route: "11", company: "NLB", orig_tc: "東涌站", dest_tc: "大澳", orig_en: "Tung Chung Station", dest_en: "Tai O", service_type: "1" },
+            { routeId: "B6", route: "B6", company: "NLB", orig_tc: "滿東邨", dest_tc: "港珠澳大橋香港口岸", orig_en: "Mun Tung Estate", dest_en: "HZMB Hong Kong Port", service_type: "1" },
+            { routeId: "23", route: "23", company: "NLB", orig_tc: "東涌達東路", dest_tc: "昂坪", orig_en: "Tung Chung Tat Tung Road", dest_en: "Ngong Ping", service_type: "1" }
         ];
 
         // Sample Bus Stops Mock Generator for Demo / Fallback
@@ -482,21 +499,22 @@
                 { seq: 2, name_tc: "秀茂坪邨秀樂樓", name_en: "Sau Lok House Sau Mau Ping Estate", lat: 22.3195, long: 114.2291, stop_id: "ST002" },
                 { seq: 3, name_tc: "觀塘轉車站 - 創紀之城", name_en: "Kwun Tong Interchange - Millennium City", lat: 22.3130, long: 114.2230, stop_id: "ST003" },
                 { seq: 4, name_tc: "九龍灣站", name_en: "Kowloon Bay Station", lat: 22.3255, long: 114.2140, stop_id: "ST004" },
-                { seq: 5, name_tc: "新蒲崗太子道東", name_en: "Prince Edward Road East San Po Kong", lat: 22.3320, long: 114.1950, stop_id: "ST005" },
-                { seq: 6, name_tc: "旺角站", name_en: "Mong Kok Station", lat: 22.3193, long: 114.1694, stop_id: "ST006" },
-                { seq: 7, name_tc: "油麻地文明里", name_en: "Man Ming Lane Yau Ma Tei", lat: 22.3115, long: 114.1706, stop_id: "ST007" },
-                { seq: 8, name_tc: "尖沙咀香港文化中心", name_en: "Hong Kong Cultural Centre Tsim Sha Tsui", lat: 22.2942, long: 114.1700, stop_id: "ST008" },
-                { seq: 9, name_tc: "尖沙咀碼頭", name_en: "Tsim Sha Tsui Ferry Pier", lat: 22.2936, long: 114.1685, stop_id: "ST009" }
+                { seq: 5, name_tc: "旺角站", name_en: "Mong Kok Station", lat: 22.3193, long: 114.1694, stop_id: "ST006" },
+                { seq: 6, name_tc: "尖沙咀碼頭", name_en: "Tsim Sha Tsui Ferry Pier", lat: 22.2936, long: 114.1685, stop_id: "ST009" }
             ],
-            "102": [
-                { seq: 1, name_tc: "美孚巴士總站", name_en: "Mei Foo Bus Terminus", lat: 22.3360, long: 114.1390, stop_id: "ST101" },
-                { seq: 2, name_tc: "長沙灣興華街", name_en: "Hing Wah Street Cheung Sha Wan", lat: 22.3385, long: 114.1550, stop_id: "ST102" },
-                { seq: 3, name_tc: "旺角奶路臣街", name_en: "Nelson Street Mong Kok", lat: 22.3188, long: 114.1690, stop_id: "ST103" },
-                { seq: 4, name_tc: "紅磡海底隧道轉車站", name_en: "Cross Harbour Tunnel Bus Interchange", lat: 22.3032, long: 114.1802, stop_id: "ST104" },
-                { seq: 5, name_tc: "維多利亞公園", name_en: "Victoria Park Causeway Bay", lat: 22.2825, long: 114.1880, stop_id: "ST105" },
-                { seq: 6, name_tc: "北角新都城大廈", name_en: "Metropole Building North Point", lat: 22.2908, long: 114.2000, stop_id: "ST106" },
-                { seq: 7, name_tc: "太古城中心", name_en: "Cityplaza Tai Koo", lat: 22.2860, long: 114.2170, stop_id: "ST107" },
-                { seq: 8, name_tc: "筲箕灣巴士總站", name_en: "Shau Kei Wan Bus Terminus", lat: 22.2790, long: 114.2280, stop_id: "ST108" }
+            "37M": [
+                { seq: 1, name_tc: "迎東邨巴士總站", name_en: "Ying Tung Estate Bus Terminus", lat: 22.2945, long: 113.9532, stop_id: "NLB_37M_1" },
+                { seq: 2, name_tc: "昇薈", name_en: "The Visionary", lat: 22.2932, long: 113.9511, stop_id: "NLB_37M_2" },
+                { seq: 3, name_tc: "東環", name_en: "Century Link", lat: 22.2921, long: 113.9500, stop_id: "NLB_37M_3" },
+                { seq: 4, name_tc: "映灣園一期", name_en: "Caribbean Coast Phase 1", lat: 22.2905, long: 113.9472, stop_id: "NLB_37M_4" },
+                { seq: 5, name_tc: "東涌站巴士總站", name_en: "Tung Chung Station Bus Terminus", lat: 22.2890, long: 113.9412, stop_id: "NLB_37M_5" }
+            ],
+            "3M": [
+                { seq: 1, name_tc: "梅窩碼頭巴士總站", name_en: "Mui Wo Ferry Pier Bus Terminus", lat: 22.2647, long: 113.9991, stop_id: "NLB_3M_1" },
+                { seq: 2, name_tc: "梅窩警署", name_en: "Mui Wo Police Station", lat: 22.2662, long: 113.9960, stop_id: "NLB_3M_2" },
+                { seq: 3, name_tc: "羅屋村", name_en: "Lo Uk Tsuen", lat: 22.2605, long: 113.9752, stop_id: "NLB_3M_3" },
+                { seq: 4, name_tc: "東涌道", name_en: "Tung Chung Road", lat: 22.2530, long: 113.9520, stop_id: "NLB_3M_4" },
+                { seq: 5, name_tc: "東涌站巴士總站", name_en: "Tung Chung Station Bus Terminus", lat: 22.2890, long: 113.9412, stop_id: "NLB_3M_5" }
             ]
         };
 
@@ -709,6 +727,7 @@
             document.getElementById('filter-all').innerText = t.filterAll;
             document.getElementById('filter-kmb-text').innerText = t.filterKMB;
             document.getElementById('filter-ctb-text').innerText = t.filterCTB;
+            document.getElementById('filter-nlb-text').innerText = t.filterNLB;
             document.getElementById('filter-cross-text').innerText = t.filterCross;
 
             document.getElementById('btn-gps-text').innerText = t.gpsBtn;
@@ -829,7 +848,7 @@
         }
 
         /**
-         * Fetching & Normalizing Routes Data
+         * Fetching & Normalizing Routes Data (KMB, CTB, NLB)
          */
         async function fetchInitialRoutesData() {
             const labelEl = document.getElementById('route-count-label');
@@ -845,6 +864,7 @@
                     .then(data => {
                         if (data && data.data) {
                             return data.data.map(r => ({
+                                routeId: r.route,
                                 route: r.route,
                                 company: 'KMB',
                                 orig_tc: r.orig_tc,
@@ -865,6 +885,7 @@
                     .then(data => {
                         if (data && data.data) {
                             return data.data.map(r => ({
+                                routeId: r.route,
                                 route: r.route,
                                 company: 'CTB',
                                 orig_tc: r.orig_tc,
@@ -879,8 +900,45 @@
                         return [];
                     }).catch(() => []);
 
-                const [kmbData, ctbData] = await Promise.all([kmbPromise, ctbPromise]);
-                fetchedRoutes = [...kmbData, ...ctbData];
+                // Fetch NLB Routes (rt.data.gov.hk v2)
+                const nlbPromise = fetch('https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list')
+                    .then(res => res.json())
+                    .then(data => {
+                        const routesArr = data.routes || data.data || [];
+                        if (Array.isArray(routesArr) && routesArr.length > 0) {
+                            return routesArr.map(r => {
+                                let orig_tc = '', dest_tc = '', orig_en = '', dest_en = '';
+                                
+                                if (r.routeName_c) {
+                                    const parts = r.routeName_c.split(/\s*[-–>—⇄>]\s*/);
+                                    orig_tc = parts[0] || r.routeName_c;
+                                    dest_tc = parts[1] || parts[0] || r.routeName_c;
+                                }
+                                if (r.routeName_e) {
+                                    const parts = r.routeName_e.split(/\s*[-–>—⇄>]\s*/);
+                                    orig_en = parts[0] || r.routeName_e;
+                                    dest_en = parts[1] || parts[0] || r.routeName_e;
+                                }
+
+                                return {
+                                    routeId: r.routeId || r.routeNo,
+                                    route: r.routeNo || r.route,
+                                    company: 'NLB',
+                                    orig_tc: orig_tc || r.routeName_c || '',
+                                    dest_tc: dest_tc || r.routeName_c || '',
+                                    orig_en: orig_en || r.routeName_e || '',
+                                    dest_en: dest_en || r.routeName_e || '',
+                                    service_type: '1',
+                                    bound: 'O',
+                                    isCross: false
+                                };
+                            });
+                        }
+                        return [];
+                    }).catch(() => []);
+
+                const [kmbData, ctbData, nlbData] = await Promise.all([kmbPromise, ctbPromise, nlbPromise]);
+                fetchedRoutes = [...kmbData, ...ctbData, ...nlbData];
 
             } catch (err) {
                 console.warn("Live API fetch failed or rate-limited. Falling back to mock data.", err);
@@ -932,6 +990,7 @@
 
                 if (STATE.currentCompanyFilter === 'KMB' && r.company !== 'KMB') return false;
                 if (STATE.currentCompanyFilter === 'CTB' && r.company !== 'CTB') return false;
+                if (STATE.currentCompanyFilter === 'NLB' && r.company !== 'NLB') return false;
                 if (STATE.currentCompanyFilter === 'CROSS' && !r.isCross) return false;
 
                 if (STATE.searchQuery) {
@@ -959,13 +1018,16 @@
                 return;
             }
 
-            const displayList = filtered.slice(0, 120);
+            const displayList = filtered.slice(0, 150);
             const isEn = STATE.lang === 'en';
 
             displayList.forEach(r => {
                 const card = document.createElement('div');
                 const fav = isFavorite(r.route);
-                const isKmb = r.company === 'KMB';
+                
+                let badgeBg = 'bg-red-600';
+                if (r.company === 'CTB') badgeBg = 'bg-blue-600';
+                else if (r.company === 'NLB') badgeBg = 'bg-teal-600';
 
                 const orig = isEn ? (r.orig_en || r.orig_tc) : (r.orig_tc || r.orig_en);
                 const dest = isEn ? (r.dest_en || r.dest_tc) : (r.dest_tc || r.dest_en);
@@ -978,7 +1040,7 @@
                 card.innerHTML = `
                     <div class="flex items-center space-x-3 min-w-0">
                         <div class="flex flex-col items-center">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold text-white ${isKmb ? 'bg-red-600' : 'bg-blue-600'}">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold text-white ${badgeBg}">
                                 ${r.company}
                             </span>
                             <span class="text-lg font-black text-gray-900 dark:text-white mt-0.5 tracking-tight">${r.route}</span>
@@ -1060,8 +1122,10 @@
             companyBadge.innerText = routeObj.company;
             if (routeObj.company === 'KMB') {
                 companyBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-extrabold text-white bg-red-600';
-            } else {
+            } else if (routeObj.company === 'CTB') {
                 companyBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-extrabold text-white bg-blue-600';
+            } else {
+                companyBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-extrabold text-white bg-teal-600';
             }
 
             updateRouteDetailHeaders();
@@ -1185,13 +1249,33 @@
                         });
                         stopsData = await Promise.all(stopPromises);
                     }
+                } else if (route.company === 'NLB') {
+                    const routeId = route.routeId || route.route;
+                    const res = await fetch(`https://rt.data.gov.hk/v1/transport/nlb/stop.php?action=list&routeId=${routeId}`);
+                    const json = await res.json();
+                    const rawStops = json.stops || json.data || [];
+
+                    if (Array.isArray(rawStops) && rawStops.length > 0) {
+                        stopsData = rawStops.map((st, idx) => ({
+                            seq: idx + 1,
+                            stop_id: st.stopId || st.stop_id,
+                            name_tc: st.stopName_c || st.stopName_tc || `巴士站 (${st.stopId})`,
+                            name_en: st.stopName_e || st.stopName_en || 'Bus Stop',
+                            lat: st.latitude ? parseFloat(st.latitude) : 22.28,
+                            long: st.longitude ? parseFloat(st.longitude) : 113.94
+                        }));
+
+                        if (bound === 'inbound') {
+                            stopsData = [...stopsData].reverse().map((st, idx) => ({ ...st, seq: idx + 1 }));
+                        }
+                    }
                 }
             } catch (err) {
                 console.warn("Failed to fetch live stops. Using fallback map data.", err);
             }
 
             if (stopsData.length === 0) {
-                stopsData = MOCK_STOPS_MAP[route.route] || MOCK_STOPS_MAP["1A"];
+                stopsData = MOCK_STOPS_MAP[route.route] || MOCK_STOPS_MAP["37M"] || MOCK_STOPS_MAP["1A"];
                 if (bound === 'inbound') {
                     stopsData = [...stopsData].reverse().map((st, idx) => ({ ...st, seq: idx + 1 }));
                 }
@@ -1225,14 +1309,30 @@
                     let url = '';
                     if (route.company === 'KMB') {
                         url = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${stopItem.stop_id}/${route.route}/${route.service_type || '1'}`;
-                    } else {
+                    } else if (route.company === 'CTB') {
                         url = `https://rt.data.gov.hk/v2/transport/citybus/eta/ctb/${stopItem.stop_id}/${route.route}`;
+                    } else if (route.company === 'NLB') {
+                        const routeId = route.routeId || route.route;
+                        url = `https://rt.data.gov.hk/v1/transport/nlb/stop.php?action=estimatedArrivals&routeId=${routeId}&stopId=${stopItem.stop_id}`;
                     }
 
                     const res = await fetch(url);
                     if (res.ok) {
                         const json = await res.json();
-                        if (json && Array.isArray(json.data)) {
+
+                        if (route.company === 'NLB') {
+                            const etaList = json.estimatedArrivals || json.data || [];
+                            if (Array.isArray(etaList) && etaList.length > 0) {
+                                apiSuccess = true;
+                                etas = etaList.slice(0, 3).map(e => {
+                                    const timeStr = e.estimatedArrivalDateTime || e.eta || e.arrivalTime;
+                                    const rmkStr = isEn ? (e.remark_e || e.routeVariantName_e) : (e.remark_c || e.routeVariantName_c);
+                                    return parseETAMinutes(timeStr, rmkStr);
+                                });
+                            } else {
+                                apiSuccess = true;
+                            }
+                        } else if (json && Array.isArray(json.data)) {
                             apiSuccess = true;
                             
                             // Filter entries matching direction if specified
@@ -1308,7 +1408,10 @@
                 };
             }
             
-            const etaTime = new Date(etaISOStr);
+            // Format check for space-separated date string "YYYY-MM-DD HH:mm:ss"
+            const formattedStr = typeof etaISOStr === 'string' ? etaISOStr.replace(' ', 'T') : etaISOStr;
+            const etaTime = new Date(formattedStr);
+
             if (isNaN(etaTime.getTime())) {
                 return { 
                     minText: rmk || I18N[STATE.lang].noService, 
@@ -1554,8 +1657,14 @@
             });
 
             if (latLngs.length > 1) {
+                let lineColor = '#E1251B'; // KMB Red default
+                if (STATE.selectedRoute) {
+                    if (STATE.selectedRoute.company === 'CTB') lineColor = '#0050A0';
+                    else if (STATE.selectedRoute.company === 'NLB') lineColor = '#00A389';
+                }
+
                 STATE.mapPolyline = L.polyline(latLngs, {
-                    color: STATE.selectedRoute && STATE.selectedRoute.company === 'KMB' ? '#E1251B' : '#0050A0',
+                    color: lineColor,
                     weight: 4,
                     opacity: 0.8,
                     dashArray: '2, 6'

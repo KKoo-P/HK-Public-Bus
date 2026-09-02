@@ -1251,7 +1251,11 @@
                     }
                 } else if (route.company === 'NLB') {
                     const routeId = route.routeId || route.route;
-                    const res = await fetch(`https://rt.data.gov.hk/v1/transport/nlb/stop.php?action=list&routeId=${routeId}`);
+                    const res = await fetch(`https://rt.data.gov.hk/v2/transport/nlb/stop.php?action=list&routeId=${encodeURIComponent(routeId)}`, {
+                        headers: { 'Accept': 'application/json' },
+                        cache: 'no-store'
+                    });
+                    if (!res.ok) throw new Error(`NLB stops HTTP ${res.status}`);
                     const json = await res.json();
                     const rawStops = json.stops || json.data || [];
 
@@ -1312,8 +1316,9 @@
                     } else if (route.company === 'CTB') {
                         url = `https://rt.data.gov.hk/v2/transport/citybus/eta/ctb/${stopItem.stop_id}/${route.route}`;
                     } else if (route.company === 'NLB') {
-                        const routeId = route.routeId || route.route;
-                        url = `https://rt.data.gov.hk/v1/transport/nlb/stop.php?action=estimatedArrivals&routeId=${routeId}&stopId=${stopItem.stop_id}`;
+                        const routeId = route.routeId;
+                        const stopId = stopItem.stop_id;
+                        url = `https://rt.data.gov.hk/v2/transport/nlb/stop.php?action=estimatedArrivals&routeId=${encodeURIComponent(routeId)}&stopId=${encodeURIComponent(stopId)}&language=${STATE.lang === 'en' ? 'en' : 'zh'}`;
                     }
 
                     const res = await fetch(url);
@@ -1325,8 +1330,8 @@
                             if (Array.isArray(etaList) && etaList.length > 0) {
                                 apiSuccess = true;
                                 etas = etaList.slice(0, 3).map(e => {
-                                    const timeStr = e.estimatedArrivalDateTime || e.eta || e.arrivalTime;
-                                    const rmkStr = isEn ? (e.remark_e || e.routeVariantName_e) : (e.remark_c || e.routeVariantName_c);
+                                    const timeStr = e.estimatedArrivalTime || e.estimatedArrivalDateTime || e.eta || e.arrivalTime;
+                                    const rmkStr = e.routeVariantName || (isEn ? (e.remark_e || e.routeVariantName_e) : (e.remark_c || e.routeVariantName_c));
                                     return parseETAMinutes(timeStr, rmkStr);
                                 });
                             } else {
